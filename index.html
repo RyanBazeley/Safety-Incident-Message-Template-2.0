@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safety Incident Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 35px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-reset {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-reset:hover {
+            background: #e0e0e0;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .success-message {
+            display: none;
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .conditional-field {
+            display: none;
+        }
+
+        .conditional-field.show {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Safety Incident Report</h1>
+        <p class="subtitle">Please complete all required fields accurately</p>
+
+        <div id="successMessage" class="success-message">
+            Report submitted successfully! PDF generated and ready for sending.
+        </div>
+
+        <form id="incidentForm">
+            <div class="form-group">
+                <label for="storeName">Store Name And Number:<span class="required">*</span></label>
+                <input type="text" id="storeName" name="storeName" required>
+            </div>
+
+            <div class="form-group">
+                <label for="whoInjured">Who Was Injured?<span class="required">*</span></label>
+                <select id="whoInjured" name="whoInjured" required>
+                    <option value="">-- Select --</option>
+                    <option value="Team Member">Team Member</option>
+                    <option value="Customer">Customer</option>
+                </select>
+            </div>
+
+            <div class="form-group conditional-field" id="injuredNameGroup">
+                <label for="injuredName"><span id="injuredNameLabel">Name:</span><span class="required">*</span></label>
+                <input type="text" id="injuredName" name="injuredName">
+            </div>
+
+            <div class="form-group">
+                <label for="incidentDate">Date of Incident / Injury:<span class="required">*</span></label>
+                <input type="date" id="incidentDate" name="incidentDate" required>
+            </div>
+
+            <div class="form-group">
+                <label for="incidentTime">Time of Incident:<span class="required">*</span></label>
+                <input type="time" id="incidentTime" name="incidentTime" required>
+            </div>
+
+            <div class="form-group conditional-field" id="customerLocationGroup">
+                <label for="customerLocation">Where in the Store Did This Occur?<span class="required">*</span></label>
+                <input type="text" id="customerLocation" name="customerLocation" placeholder="e.g., Aisle 5, Front entrance, Produce section...">
+            </div>
+
+            <div class="form-group conditional-field" id="departmentGroup">
+                <label for="department">Department:<span class="required">*</span></label>
+                <select id="department" name="department">
+                    <option value="">-- Select Department --</option>
+                    <option value="GR">GR - Grocery</option>
+                    <option value="DY">DY - Dairy</option>
+                    <option value="OL">OL - Online</option>
+                    <option value="SV">SV - Service</option>
+                    <option value="FV">FV - Fruits & Vegetables</option>
+                    <option value="DL">DL - Deli</option>
+                    <option value="MT">MT - Meat</option>
+                    <option value="BH">BH - Bakery</option>
+                    <option value="OH">OH - Other</option>
+                </select>
+            </div>
+
+            <div class="form-group conditional-field" id="shiftStartGroup">
+                <label for="shiftStart">What Time Did They Start Their Shift?<span class="required">*</span></label>
+                <input type="time" id="shiftStart" name="shiftStart">
+            </div>
+
+            <div class="form-group">
+                <label for="injuryDescription">Injury Description:<span class="required">*</span></label>
+                <select id="injuryDescription" name="injuryDescription" required>
+                    <option value="">-- Select Injury Type --</option>
+                    <option value="Customer slip/fall">Customer slip/fall</option>
+                    <option value="Slip on wet floor">Slip on wet floor</option>
+                    <option value="Trip over object/pallet">Trip over object/pallet</option>
+                    <option value="Cut from box cutter/knife">Cut from box cutter/knife</option>
+                    <option value="Back strain">Back strain</option>
+                    <option value="Neck strain">Neck strain</option>
+                    <option value="Shoulder strain">Shoulder strain</option>
+                    <option value="Arm strain">Arm strain</option>
+                    <option value="Elbow strain">Elbow strain</option>
+                    <option value="Wrist strain">Wrist strain</option>
+                    <option value="Hand strain">Hand strain</option>
+                    <option value="Hip strain">Hip strain</option>
+                    <option value="Leg strain">Leg strain</option>
+                    <option value="Knee strain">Knee strain</option>
+                    <option value="Ankle strain">Ankle strain</option>
+                    <option value="Foot strain">Foot strain</option>
+                    <option value="Lifting/strain injury">Lifting/strain injury</option>
+                    <option value="Repetitive motion injury">Repetitive motion injury</option>
+                    <option value="Struck by falling object">Struck by falling object</option>
+                    <option value="Hit by shopping cart">Hit by shopping cart</option>
+                    <option value="Burn from hot equipment">Burn from hot equipment</option>
+                    <option value="Cut from broken glass">Cut from broken glass</option>
+                    <option value="Pinched finger in equipment">Pinched finger in equipment</option>
+                    <option value="Sprained ankle">Sprained ankle</option>
+                    <option value="Fall from ladder">Fall from ladder</option>
+                    <option value="Chemical exposure/splash">Chemical exposure/splash</option>
+                    <option value="Eye injury">Eye injury</option>
+                    <option value="Allergic reaction">Allergic reaction</option>
+                    <option value="Collision with equipment">Collision with equipment</option>
+                    <option value="Door/freezer injury">Door/freezer injury</option>
+                    <option value="Customer-related incident">Customer-related incident</option>
+                    <option value="Other">Other - see description</option>
+                </select>
+            </div>
+
+            <div class="form-group conditional-field" id="otherInjuryGroup">
+                <label for="otherInjuryDetail">Please Describe the Injury:</label>
+                <textarea id="otherInjuryDetail" name="otherInjuryDetail" placeholder="Provide detailed description of what happened and where..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="firstAid">First Aid?<span class="required">*</span></label>
+                <select id="firstAid" name="firstAid" required>
+                    <option value="">-- Select Option --</option>
+                    <option value="Yes">Yes</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="injuryCareNurse"><span id="injuryCareLabel">InjuryCare Nurse Called?</span><span class="required">*</span></label>
+                <select id="injuryCareNurse" name="injuryCareNurse" required>
+                    <option value="">-- Select Option --</option>
+                    <option value="Yes" id="option1">Yes</option>
+                    <option value="Nurse offered but declined" id="option2">Nurse offered but declined</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="immediateActions">Immediate Actions:<span class="required">*</span></label>
+                <textarea id="immediateActions" name="immediateActions" placeholder="Describe the immediate actions taken following the incident..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="correctiveActions">Corrective Actions:<span class="required">*</span></label>
+                <textarea id="correctiveActions" name="correctiveActions" placeholder="Describe the corrective actions to prevent future incidents..." required></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-submit">Generate PDF & Send</button>
+                <button type="reset" class="btn-reset">Reset Form</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('incidentForm');
+        const successMessage = document.getElementById('successMessage');
+        const whoInjured = document.getElementById('whoInjured');
+        const injuredNameGroup = document.getElementById('injuredNameGroup');
+        const injuredName = document.getElementById('injuredName');
+        const injuredNameLabel = document.getElementById('injuredNameLabel');
+        const customerLocationGroup = document.getElementById('customerLocationGroup');
+        const customerLocation = document.getElementById('customerLocation');
+        const departmentGroup = document.getElementById('departmentGroup');
+        const department = document.getElementById('department');
+        const shiftStartGroup = document.getElementById('shiftStartGroup');
+        const shiftStart = document.getElementById('shiftStart');
+        const injuryCareLabel = document.getElementById('injuryCareLabel');
+        const injuryCareNurse = document.getElementById('injuryCareNurse');
+        const option1 = document.getElementById('option1');
+        const option2 = document.getElementById('option2');
+        const injuryDescription = document.getElementById('injuryDescription');
+        const otherInjuryGroup = document.getElementById('otherInjuryGroup');
+        const otherInjuryDetail = document.getElementById('otherInjuryDetail');
+
+        // Handle "Who was injured" selection
+        whoInjured.addEventListener('change', function() {
+            if (this.value === 'Team Member') {
+                // Show name field, department, and shift start for Team Member
+                injuredNameGroup.classList.add('show');
+                injuredNameLabel.textContent = 'Team Member Name:';
+                injuredName.required = true;
+                
+                customerLocationGroup.classList.remove('show');
+                customerLocation.required = false;
+                customerLocation.value = '';
+                
+                departmentGroup.classList.add('show');
+                department.required = true;
+                
+                shiftStartGroup.classList.add('show');
+                shiftStart.required = true;
+                
+                // Change label back to InjuryCare Nurse and reset options
+                injuryCareLabel.textContent = 'InjuryCare Nurse Called?';
+                option1.textContent = 'Yes';
+                option1.value = 'Yes';
+                option2.textContent = 'Nurse offered but declined';
+                option2.value = 'Nurse offered but declined';
+                injuryCareNurse.value = ''; // Reset selection
+            } else if (this.value === 'Customer') {
+                // Show name field and location but hide department and shift start for Customer
+                injuredNameGroup.classList.add('show');
+                injuredNameLabel.textContent = 'Customer Name:';
+                injuredName.required = true;
+                
+                customerLocationGroup.classList.add('show');
+                customerLocation.required = true;
+                
+                departmentGroup.classList.remove('show');
+                department.required = false;
+                department.value = '';
+                
+                shiftStartGroup.classList.remove('show');
+                shiftStart.required = false;
+                shiftStart.value = '';
+                
+                // Change label to Emergency Services and change options to Yes/No
+                injuryCareLabel.textContent = 'Emergency Services Called?';
+                option1.textContent = 'Yes';
+                option1.value = 'Yes';
+                option2.textContent = 'No';
+                option2.value = 'No';
+                injuryCareNurse.value = ''; // Reset selection
+            } else {
+                // Hide all if nothing selected
+                injuredNameGroup.classList.remove('show');
+                injuredName.required = false;
+                injuredName.value = '';
+                
+                customerLocationGroup.classList.remove('show');
+                customerLocation.required = false;
+                customerLocation.value = '';
+                
+                departmentGroup.classList.remove('show');
+                department.required = false;
+                department.value = '';
+                
+                shiftStartGroup.classList.remove('show');
+                shiftStart.required = false;
+                shiftStart.value = '';
+                
+                // Reset label to default
+                injuryCareLabel.textContent = 'InjuryCare Nurse Called?';
+                option1.textContent = 'Yes';
+                option1.value = 'Yes';
+                option2.textContent = 'Nurse offered but declined';
+                option2.value = 'Nurse offered but declined';
+                injuryCareNurse.value = ''; // Reset selection
+            }
+        });
+
+        // Handle "Other" injury description selection
+        injuryDescription.addEventListener('change', function() {
+            if (this.value === 'Other') {
+                otherInjuryGroup.classList.add('show');
+                otherInjuryDetail.required = true;
+            } else {
+                otherInjuryGroup.classList.remove('show');
+                otherInjuryDetail.required = false;
+                otherInjuryDetail.value = '';
+            }
+        });
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get form data
+            const formData = new FormData(form);
+            const data = {};
+            formData.forEach((value, key) => {
+                data[key] = value;
+            });
+
+            // If "Other" is selected, combine with the detail
+            if (data.injuryDescription === 'Other' && data.otherInjuryDetail) {
+                data.injuryDescription = 'Other: ' + data.otherInjuryDetail;
+            }
+
+            // Generate PDF
+            generatePDF(data);
+
+            // Show success message
+            successMessage.classList.add('show');
+            setTimeout(() => {
+                successMessage.classList.remove('show');
+            }, 5000);
+
+            // Here you would integrate with an SMS API to send the PDF
+            // For demonstration, we'll show an alert
+            setTimeout(() => {
+                alert('In a production environment, this would send an SMS with the PDF attachment.\n\nTo implement SMS functionality, you would need to integrate with a service like Twilio, AWS SNS, or similar SMS gateway.');
+            }, 1000);
+        });
+
+        form.addEventListener('reset', function() {
+            successMessage.classList.remove('show');
+            injuredNameGroup.classList.remove('show');
+            customerLocationGroup.classList.remove('show');
+            departmentGroup.classList.remove('show');
+            shiftStartGroup.classList.remove('show');
+            otherInjuryGroup.classList.remove('show');
+            injuredName.required = false;
+            customerLocation.required = false;
+            department.required = false;
+            shiftStart.required = false;
+            otherInjuryDetail.required = false;
+        });
+
+        function generatePDF(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Set up PDF styling
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 20;
+            const lineHeight = 7;
+            let yPosition = 20;
+
+            // Title
+            doc.setFontSize(18);
+            doc.setFont(undefined, 'bold');
+            doc.text('Safety Incident Report', margin, yPosition);
+            
+            yPosition += 10;
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, margin, yPosition);
+            doc.setTextColor(0);
+
+            yPosition += 15;
+
+            // Add form data
+            doc.setFontSize(11);
+
+            const addField = (label, value) => {
+                if (!value) return; // Skip empty fields
+                
+                doc.setFont(undefined, 'bold');
+                doc.text(label, margin, yPosition);
+                doc.setFont(undefined, 'normal');
+                
+                const textLines = doc.splitTextToSize(value || 'N/A', pageWidth - (margin * 2));
+                yPosition += lineHeight;
+                doc.text(textLines, margin, yPosition);
+                yPosition += (textLines.length - 1) * lineHeight + 10;
+
+                // Add new page if needed
+                if (yPosition > 270) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+            };
+
+            addField('Store Name And Number:', data.storeName);
+            addField('Who Was Injured:', data.whoInjured);
+            addField(data.whoInjured === 'Team Member' ? 'Team Member Name:' : 'Customer Name:', data.injuredName);
+            addField('Date of Incident / Injury:', data.incidentDate);
+            addField('Time of Incident:', data.incidentTime);
+            if (data.customerLocation) {
+                addField('Where in the Store Did This Occur:', data.customerLocation);
+            }
+            addField('Department:', data.department);
+            if (data.shiftStart) {
+                addField('Shift Start Time:', data.shiftStart);
+            }
+            addField('Injury Description:', data.injuryDescription);
+            addField('First Aid:', data.firstAid);
+            addField(data.whoInjured === 'Customer' ? 'Emergency Services Called:' : 'InjuryCare Nurse Called:', data.injuryCareNurse);
+            addField('Immediate Actions:', data.immediateActions);
+            addField('Corrective Actions:', data.correctiveActions);
+
+            // Save the PDF
+            const fileName = `Incident_Report_${data.injuredName ? data.injuredName.replace(/\s+/g, '_') : 'Unknown'}_${new Date().getTime()}.pdf`;
+            doc.save(fileName);
+        }
+    </script>
+</body>
+</html>
